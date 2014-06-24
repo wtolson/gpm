@@ -54,7 +54,13 @@ set_dependencies() {
         out=$(go get -u -d "$package" 2>&1 >/dev/null) && break
       done
       [[ $? != 0 ]] && echo "-- Failed to get "$package", error: " && echo "$out" && exit 1
+    ) &
+  done < <(echo "$deps")
+  wait
 
+  while read package version; do
+    (
+      local install_path="${GOPATH%%:*}/src/${package%%/...}"
       echo ">> Setting $package to version $version"
       cd $install_path
       is_in_use $install_path && wait
@@ -66,6 +72,7 @@ set_dependencies() {
     ) &
   done < <(echo "$deps")
   wait
+
   echo ">> All Done"
 }
 ## /Functions
